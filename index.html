@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>水商売向け会計システム デモ</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css">
+<style>
+  :root{
+    --surface-0:#f6f5f1;
+    --surface-1:#efeee8;
+    --surface-2:#ffffff;
+    --text-primary:#1f1e1c;
+    --text-secondary:#6b6a64;
+    --text-muted:#9a988f;
+    --border:#e2e0d8;
+    --border-strong:#c9c7bc;
+    --radius:8px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--surface-0);
+    color:var(--text-primary);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN",sans-serif;
+    line-height:1.6;
+  }
+  .wrap{max-width:720px; margin:0 auto; padding:2rem 1.25rem 4rem;}
+  h1{font-size:20px; font-weight:500; margin:0 0 4px;}
+  .lead{font-size:13px; color:var(--text-secondary); margin:0 0 1.5rem;}
+  .panel{background:var(--surface-1); border-radius:12px; padding:1rem 1.25rem; margin-bottom:1.25rem;}
+  .panel-title{font-size:13px; color:var(--text-secondary); margin-bottom:12px; display:flex; align-items:center; gap:6px;}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px;}
+  label.field-label{font-size:12px; color:var(--text-muted); display:block; margin-bottom:4px;}
+  input[type=number]{
+    width:100%; height:36px; border:0.5px solid var(--border-strong); border-radius:var(--radius);
+    padding:0 10px; font-size:14px; background:var(--surface-2); color:var(--text-primary);
+  }
+  .checks{display:flex; flex-wrap:wrap; gap:16px; margin-top:14px; padding-top:12px; border-top:0.5px solid var(--border);}
+  .checks label{font-size:13px; display:flex; align-items:center; gap:6px; cursor:pointer;}
+  .checks input{width:auto;}
+  .card{background:var(--surface-2); border:0.5px solid var(--border); border-radius:12px; padding:1rem 1.25rem;}
+  .card-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .card-head .title{font-size:15px; font-weight:500;}
+  button{
+    border:0.5px solid var(--border-strong); background:transparent; border-radius:var(--radius);
+    padding:6px 10px; font-size:12px; cursor:pointer; color:var(--text-primary);
+  }
+  button:hover{background:var(--surface-1);}
+  button:active{transform:scale(0.98);}
+  #add-buttons{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;}
+  #order-lines{border-top:0.5px solid var(--border);}
+  .line{display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:0.5px solid var(--border);}
+  .line .name{flex:1; font-size:13px;}
+  .line .price{width:80px; text-align:right; font-size:13px;}
+  .line .castcell{width:64px; text-align:right;}
+  select{height:28px; font-size:12px; padding:2px 6px; border:0.5px solid var(--border-strong); border-radius:var(--radius); background:var(--surface-2); color:var(--text-primary);}
+  .muted-sm{font-size:11px; color:var(--text-muted);}
+  .empty{padding:20px 0; text-align:center; color:var(--text-muted); font-size:13px;}
+  #totals{margin-top:14px; padding-top:12px; border-top:0.5px solid var(--border-strong);}
+  .trow{display:flex; justify-content:space-between; font-size:13px; padding:3px 0; color:var(--text-secondary);}
+  .trow span:last-child{color:var(--text-primary);}
+  .grand{display:flex; justify-content:space-between; margin-top:8px; padding-top:8px; border-top:0.5px solid var(--border-strong);}
+  .grand .label{font-size:15px; font-weight:500;}
+  .grand .value{font-size:20px; font-weight:500;}
+  .cast-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;}
+  .cast-box{background:var(--surface-2); border:0.5px solid var(--border); border-radius:var(--radius); padding:10px 12px;}
+  .cast-box .nm{font-size:13px; font-weight:500; margin-bottom:6px;}
+  .cast-box .amt{font-size:18px; font-weight:500; margin-bottom:4px;}
+  footer{margin-top:2rem; font-size:11px; color:var(--text-muted); text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>水商売向け会計システム デモ</h1>
+  <p class="lead">店舗設定を変えると、下の伝票の計算がその場で変わります。</p>
+
+  <div class="panel">
+    <div class="panel-title"><i class="ti ti-settings" aria-hidden="true"></i>店舗設定（ここを入れたら店が変わる）</div>
+    <div class="grid">
+      <div>
+        <label class="field-label">セット時間（分）</label>
+        <input type="number" id="cf-setmin" value="60">
+      </div>
+      <div>
+        <label class="field-label">セット単価（円）</label>
+        <input type="number" id="cf-setprice" value="5000">
+      </div>
+      <div>
+        <label class="field-label">延長単価（円）</label>
+        <input type="number" id="cf-extprice" value="5000">
+      </div>
+      <div>
+        <label class="field-label">サービス料（%）</label>
+        <input type="number" id="cf-svc" value="20">
+      </div>
+      <div>
+        <label class="field-label">消費税（%）</label>
+        <input type="number" id="cf-tax" value="10">
+      </div>
+    </div>
+    <div class="checks">
+      <label><input type="checkbox" id="cf-nom" checked> 指名料あり</label>
+      <label><input type="checkbox" id="cf-douhan" checked> 同伴料あり</label>
+      <label><input type="checkbox" id="cf-dback" checked> ドリンクバックあり</label>
+      <label><input type="checkbox" id="cf-bottle" checked> ボトルあり</label>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="title">伝票（卓1）</div>
+      <button id="btn-clear"><i class="ti ti-refresh" aria-hidden="true" style="font-size:14px; vertical-align:-2px;"></i> クリア</button>
+    </div>
+    <div id="add-buttons"></div>
+    <div id="order-lines"></div>
+    <div id="totals"></div>
+  </div>
+
+  <div class="panel" style="margin-top:1.25rem;">
+    <div class="panel-title"><i class="ti ti-users" aria-hidden="true"></i>キャスト別売上（自動集計）</div>
+    <div id="cast-summary"></div>
+  </div>
+
+  <footer>株式会社ブックスタンド｜会計システム検討用デモ</footer>
+</div>
+
+<script>
+(function(){
+  var casts = ['あい','まり','ゆき'];
+  var order = [];
+
+  function cfg(){
+    return {
+      setmin: +document.getElementById('cf-setmin').value || 0,
+      setprice: +document.getElementById('cf-setprice').value || 0,
+      extprice: +document.getElementById('cf-extprice').value || 0,
+      svc: +document.getElementById('cf-svc').value || 0,
+      tax: +document.getElementById('cf-tax').value || 0,
+      nom: document.getElementById('cf-nom').checked,
+      douhan: document.getElementById('cf-douhan').checked,
+      dback: document.getElementById('cf-dback').checked,
+      bottle: document.getElementById('cf-bottle').checked
+    };
+  }
+
+  var drinkMenu = [{name:'キャストドリンク', price:1000, back:true},{name:'ハウスボトル割り', price:700, back:false}];
+  var bottleMenu = [{name:'ボトル（焼酎）', price:8000},{name:'ボトル（シャンパン）', price:30000}];
+
+  function yen(n){ return '¥' + Math.round(n).toLocaleString(); }
+
+  function buildButtons(){
+    var c = cfg();
+    var wrap = document.getElementById('add-buttons');
+    var btns = [];
+    btns.push({label:'セット', icon:'ti-armchair', fn:function(){ order.push({type:'set', name:'セット('+c.setmin+'分)', price:c.setprice, cast:null}); }});
+    btns.push({label:'延長', icon:'ti-clock-plus', fn:function(){ order.push({type:'set', name:'延長('+c.setmin+'分)', price:c.extprice, cast:null}); }});
+    if(c.nom) btns.push({label:'指名', icon:'ti-star', fn:function(){ order.push({type:'nom', name:'本指名', price:2000, cast:0}); }});
+    if(c.douhan) btns.push({label:'同伴', icon:'ti-walk', fn:function(){ order.push({type:'douhan', name:'同伴', price:3000, cast:0}); }});
+    drinkMenu.forEach(function(d){
+      btns.push({label:d.name, icon:'ti-glass-full', fn:function(){ order.push({type:'drink', name:d.name, price:d.price, cast:(c.dback && d.back)?0:null, backable:d.back}); }});
+    });
+    if(c.bottle) bottleMenu.forEach(function(b){
+      btns.push({label:b.name, icon:'ti-bottle', fn:function(){ order.push({type:'bottle', name:b.name, price:b.price, cast:0}); }});
+    });
+
+    wrap.innerHTML='';
+    btns.forEach(function(b){
+      var el=document.createElement('button');
+      el.innerHTML='<i class="ti '+b.icon+'" aria-hidden="true" style="font-size:14px; vertical-align:-2px; margin-right:3px;"></i>'+b.label;
+      el.onclick=function(){ b.fn(); render(); };
+      wrap.appendChild(el);
+    });
+  }
+
+  function castSelect(idx, cur){
+    var opts = casts.map(function(c,i){ return '<option value="'+i+'"'+(i===cur?' selected':'')+'>'+c+'</option>'; }).join('');
+    return '<select data-line="'+idx+'" class="cast-sel">'+opts+'</select>';
+  }
+
+  function render(){
+    var c = cfg();
+    var lines = document.getElementById('order-lines');
+    if(order.length===0){
+      lines.innerHTML='<div class="empty">上のボタンで注文を追加</div>';
+    } else {
+      lines.innerHTML = order.map(function(it,i){
+        var castCell='';
+        if(it.cast!==null){
+          castCell = castSelect(i, it.cast);
+        } else if(it.type==='drink' && it.backable && !c.dback){
+          castCell='<span class="muted-sm">バックなし</span>';
+        } else {
+          castCell='<span class="muted-sm">—</span>';
+        }
+        return '<div class="line">'+
+          '<span class="name">'+it.name+'</span>'+
+          '<span class="price">'+yen(it.price)+'</span>'+
+          '<span class="castcell">'+castCell+'</span>'+
+          '<button data-del="'+i+'" class="del-btn" aria-label="削除"><i class="ti ti-x" aria-hidden="true"></i></button>'+
+        '</div>';
+      }).join('');
+    }
+
+    document.querySelectorAll('.cast-sel').forEach(function(s){
+      s.onchange=function(){ order[+s.dataset.line].cast = +s.value; render(); };
+    });
+    document.querySelectorAll('.del-btn').forEach(function(b){
+      b.onclick=function(){ order.splice(+b.dataset.del,1); render(); };
+    });
+
+    var sub = order.reduce(function(a,it){ return a+it.price; },0);
+    var svc = sub * c.svc/100;
+    var pretax = sub + svc;
+    var tax = pretax * c.tax/100;
+    var total = pretax + tax;
+
+    document.getElementById('totals').innerHTML =
+      row('小計', yen(sub)) +
+      row('サービス料 '+c.svc+'%', yen(svc)) +
+      row('税抜合計', yen(pretax)) +
+      row('消費税 '+c.tax+'%', yen(tax)) +
+      '<div class="grand"><span class="label">ご請求</span><span class="value">'+yen(total)+'</span></div>';
+
+    var byCast = casts.map(function(){ return {amount:0, nom:0, douhan:0, drink:0}; });
+    order.forEach(function(it){
+      if(it.cast===null) return;
+      var t=byCast[it.cast];
+      t.amount += it.price;
+      if(it.type==='nom') t.nom++;
+      else if(it.type==='douhan') t.douhan++;
+      else if(it.type==='drink') t.drink++;
+    });
+    document.getElementById('cast-summary').innerHTML =
+      '<div class="cast-grid">'+
+      casts.map(function(name,i){
+        var t=byCast[i];
+        return '<div class="cast-box">'+
+          '<div class="nm">'+name+'</div>'+
+          '<div class="amt">'+yen(t.amount)+'</div>'+
+          '<div class="muted-sm">指名'+t.nom+' / 同伴'+t.douhan+' / ドリンク'+t.drink+'</div>'+
+        '</div>';
+      }).join('')+'</div>';
+  }
+
+  function row(label,val){
+    return '<div class="trow"><span>'+label+'</span><span>'+val+'</span></div>';
+  }
+
+  ['cf-setmin','cf-setprice','cf-extprice','cf-svc','cf-tax'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', render);
+  });
+  ['cf-nom','cf-douhan','cf-dback','cf-bottle'].forEach(function(id){
+    document.getElementById(id).addEventListener('change', function(){ buildButtons(); render(); });
+  });
+  document.getElementById('btn-clear').onclick=function(){ order=[]; render(); };
+
+  buildButtons();
+  render();
+})();
+</script>
+</body>
+</html>
